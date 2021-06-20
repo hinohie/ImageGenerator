@@ -5,6 +5,7 @@
 #include "stb_image_write.h"
 
 #include<stdio.h>
+#include<vector>
 
 using namespace IMAGE;
 
@@ -28,15 +29,17 @@ using namespace IMAGE;
 **********************************/
 
 
-Image::Image() { h = w = 0; data = NULL; }
+Image::Image() { h = w = 0; data = NULL; alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA; }
 Image::~Image() { if (data) delete[] data; }
 Image::Image(int _w, int _h) {
 	h = _h; w = _w;
 	data = new uchar[h * w * 4];
 	clean();
+	alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA;
 }
 Image::Image(const std::string& filename) {
 	Load(filename);
+	alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA;
 }
 void Image::setsize(int _w, int _h) {
 	h = _h; w = _w;
@@ -74,11 +77,14 @@ void Image::set_pixel(int i, int j, double rr, double gg, double bb, double aa) 
 	double pr = data[id * 4 + 0] / 255.0;
 	double pg = data[id * 4 + 1] / 255.0;
 	double pb = data[id * 4 + 2] / 255.0;
+	double pa = 1.0 - aa;
+	if (alpha_behavior == ALPHA_BEHAVIOR::ONE) {
+		pa = 1.0;
+	}
 
-
-	uchar r = dtoc(rr * aa + pr * (1.0 - aa));
-	uchar g = dtoc(gg * aa + pg * (1.0 - aa));
-	uchar b = dtoc(bb * aa + pb * (1.0 - aa));
+	uchar r = dtoc(rr * aa + pr * pa);
+	uchar g = dtoc(gg * aa + pg * pa);
+	uchar b = dtoc(bb * aa + pb * pa);
 	data[id * 4 + 0] = r;
 	data[id * 4 + 1] = g;
 	data[id * 4 + 2] = b;
@@ -158,7 +164,8 @@ void Image::draw_rectangle_border(double cx, double cy, double px, double py, do
 		}
 	}
 }
-void Image::draw_line(double cx, double cy, double px, double py, double radius, double rr, double gg, double bb) {
+void Image::draw_line(double cx, double cy, double px, double py, double radius, double rr, double gg, double bb, double aa) {
+	std::vector<std::vector<bool>> vb(h, std::vector<bool>(w, false));
 	for (int ci = cy - radius - 1; ci <= cy + radius + 1; ci++) {
 		for (int cj = cx - radius - 1; cj <= cx + radius + 1; cj++) {
 			double di = ci - cy;
@@ -172,7 +179,10 @@ void Image::draw_line(double cx, double cy, double px, double py, double radius,
 					set_pixel(ci, cj, rr * 0.1, gg * 0.1, bb * 0.1);
 				}
 				*/
-				set_pixel(ci, cj, rr, gg, bb);
+				if (ci >= 0 && ci < h && cj >= 0 && cj < w && !vb[ci][cj]) {
+					vb[ci][cj] = true;
+					set_pixel(ci, cj, rr, gg, bb, aa);
+				}
 			}
 		}
 	}
@@ -189,7 +199,10 @@ void Image::draw_line(double cx, double cy, double px, double py, double radius,
 					set_pixel(ci, cj, rr * 0.1, gg * 0.1, bb * 0.1);
 				}
 				*/
-				set_pixel(ci, cj, rr, gg, bb);
+				if (ci>=0 && ci<h && cj>=0 && cj<w && !vb[ci][cj]) {
+					vb[ci][cj] = true;
+					set_pixel(ci, cj, rr, gg, bb, aa);
+				}
 			}
 		}
 	}
@@ -221,7 +234,10 @@ void Image::draw_line(double cx, double cy, double px, double py, double radius,
 					set_pixel(ci, cj, rr * 0.1, gg * 0.1, bb * 0.1);
 				}
 				*/
-				set_pixel(ci, cj, rr, gg, bb);
+				if (!vb[ci][cj]) {
+					vb[ci][cj] = true;
+					set_pixel(ci, cj, rr, gg, bb, aa);
+				}
 			}
 		}
 	}

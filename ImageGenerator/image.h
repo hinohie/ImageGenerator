@@ -42,10 +42,15 @@ namespace IMAGE {
 		void draw_diamond_border(double cx, double cy, double radius, double border_width, double rr, double gg, double bb, double aa = 1.0);
 		void draw_rectangle(double cx, double cy, double px, double py, double rr, double gg, double bb, double aa = 1.0);
 		void draw_rectangle_border(double cx, double cy, double px, double py, double border_width, double rr, double gg, double bb, double aa = 1.0);
-		void draw_line(double cx, double cy, double px, double py, double radius, double rr, double gg, double bb);
+		void draw_line(double cx, double cy, double px, double py, double radius, double rr, double gg, double bb, double aa = 1.0);
 		void draw_line_gradient(double cx, double cy, double px, double py, double radius, double rr, double gg, double bb, double rrr, double ggg, double bbb);
 		void draw_image(double cx, double cy, double px, double py, const Image& img);
 
+		enum class ALPHA_BEHAVIOR {
+			ONE_MINUS_ALPHA = 0, // default
+			ONE,
+		};
+		ALPHA_BEHAVIOR alpha_behavior;
 
 		void flip_x();
 		void flip_y();
