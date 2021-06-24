@@ -12,7 +12,7 @@ int nextint(int s, int t) {
 void generate_sample1() {
 	printf("Sample 1 : Red gradient\n");
 
-	std::string filename = "sample1.png";
+	std::string filename = "ImageGenerator/sample1.png";
 
 	int i, j, k;
 	int width = 320;
@@ -31,7 +31,7 @@ void generate_sample1() {
 void generate_sample2() {
 	printf("Sample 2 : Rectangles + Diamond + Circle\n");
 
-	std::string filename = "sample2.png";
+	std::string filename = "ImageGenerator/sample2.png";
 
 	int i, j, k;
 	int width = 320;
@@ -52,7 +52,7 @@ void generate_sample2() {
 void generate_sample3() {
 	printf("Sample 3 : Rectangles + Diamond + Circle only border\n");
 
-	std::string filename = "sample3.png";
+	std::string filename = "ImageGenerator/sample3.png";
 
 	int i, j, k;
 	int width = 320;
@@ -77,7 +77,7 @@ void generate_sample3() {
 void generate_sample4() {
 	printf("Sample 4 : Lines\n");
 
-	std::string filename = "sample4.png";
+	std::string filename = "ImageGenerator/sample4.png";
 
 	int i, j, k;
 	int width = 320;
@@ -111,7 +111,7 @@ void generate_sample4() {
 void generate_sample5() {
 	printf("Sample 5 : Alpha blending\n");
 
-	std::string filename = "sample5.png";
+	std::string filename = "ImageGenerator/sample5.png";
 
 	int i, j, k;
 	int width = 320;
@@ -137,7 +137,7 @@ void generate_sample5() {
 void generate_sample6() {
 	printf("Sample 6 : Load Image\n");
 
-	std::string filename = "sample6.png";
+	std::string filename = "ImageGenerator/sample6.png";
 
 	int i, j, k;
 	int width = 320;
@@ -147,7 +147,7 @@ void generate_sample6() {
 	IMAGE::Image number[10];
 	for (i = 0; i < 10; i++) {
 		char xxx[99];
-		sprintf(xxx, "numbers/%d.png", i);
+		sprintf(xxx, "ImageGenerator/numbers/%d.png", i);
 		number[i].Load(xxx);
 		number[i].set_transparency_color(255, 255, 255, 0);
 	}
@@ -208,7 +208,7 @@ void generate_sample6() {
 void generate_sample7() {
 	printf("Sample 7 : Whatever you want\n");
 
-	std::string filename = "sample7.png";
+	std::string filename = "ImageGenerator/sample7.png";
 
 	int i, j, k;
 	int width = 320;
@@ -265,14 +265,14 @@ void generate_sample7() {
 void generate_sample8() {
 	printf("Sample 8 : Resize Image\n");
 
-	std::string filename = "sample8.png";
+	std::string filename = "ImageGenerator/sample8.png";
 
 	int i, j, k;
 	int width = 1280;
 	int height = 480;
 	IMAGE::Image img(width, height);
 
-	IMAGE::Image base("sample6.png");
+	IMAGE::Image base("ImageGenerator/sample6.png");
 
 	// same scale image
 	img.draw_image(0, 0, 160, 120, base);
