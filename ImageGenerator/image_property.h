@@ -1,11 +1,11 @@
 #pragma once
 
 namespace IMAGE {
-	enum class ALPHA_BEHAVIOR {
+	enum class AlphaBehaviorType {
 		ONE_MINUS_ALPHA = 0, // default
 		ONE,
 	};
-	enum class SAMPLING_MODE {
+	enum class SamplingModeType {
 		SAMPLING_CENTER = 0, // default
 		SAMPLING_2x2, // TODO
 		SAMPLING_3x3, // TODO

@@ -53,8 +53,8 @@ namespace IMAGE {
 		void draw_line_gradient(double cx, double cy, double px, double py, double radius, double rr, double gg, double bb, double rrr, double ggg, double bbb);
 		void draw_image(double cx, double cy, double px, double py, const Image& img);
 
-		ALPHA_BEHAVIOR alpha_behavior;
-		SAMPLING_MODE  sampling_mode;
+		AlphaBehaviorType mAlphaBehavior;
+		SamplingModeType  mSamplingMode;
 
 		void flip_x();
 		void flip_y();
