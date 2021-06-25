@@ -1,6 +1,8 @@
 #pragma once
 
 #include<string>
+#include"image_property.h"
+
 namespace IMAGE {
 	using uchar = unsigned char;
 #define E 1e-9
@@ -51,10 +53,6 @@ namespace IMAGE {
 		void draw_line_gradient(double cx, double cy, double px, double py, double radius, double rr, double gg, double bb, double rrr, double ggg, double bbb);
 		void draw_image(double cx, double cy, double px, double py, const Image& img);
 
-		enum class ALPHA_BEHAVIOR {
-			ONE_MINUS_ALPHA = 0, // default
-			ONE,
-		};
 		ALPHA_BEHAVIOR alpha_behavior;
 
 		void flip_x();
