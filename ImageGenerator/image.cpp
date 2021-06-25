@@ -34,6 +34,7 @@ Image::Image()
 	, w(0)
 	, data(NULL)
 	, alpha_behavior(ALPHA_BEHAVIOR::ONE_MINUS_ALPHA)
+	, sampling_mode(SAMPLING_MODE::SAMPLING_CENTER)
 {
 }
 
@@ -42,6 +43,7 @@ Image::Image(int _w, int _h)
 	, w(_w)
 	, data(new uchar[h * w * 4])
 	, alpha_behavior(ALPHA_BEHAVIOR::ONE_MINUS_ALPHA)
+	, sampling_mode(SAMPLING_MODE::SAMPLING_CENTER)
 {
 	clean();
 }
@@ -51,6 +53,7 @@ Image::Image(const Image& other)
 	, w(other.w)
 	, data(new uchar[h * w * 4])
 	, alpha_behavior(other.alpha_behavior)
+	, sampling_mode(other.sampling_mode)
 {
 	for (int i = 0; i < h; i++) {
 		for (int j = 0; j < w; j++) {
@@ -68,15 +71,21 @@ Image::Image(Image&& other)
 	, w(other.w)
 	, data(other.data)
 	, alpha_behavior(other.alpha_behavior)
+	, sampling_mode(other.sampling_mode)
 {
 	other.h = 0;
 	other.w = 0;
 	other.data = NULL;
 }
 
-Image::Image(const std::string& filename) {
+Image::Image(const std::string& filename)
+	: h(0)
+	, w(0)
+	, data(NULL)
+	, alpha_behavior(ALPHA_BEHAVIOR::ONE_MINUS_ALPHA)
+	, sampling_mode(SAMPLING_MODE::SAMPLING_CENTER)
+{
 	Load(filename);
-	alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA;
 }
 
 Image::~Image() { if (data) delete[] data; }
@@ -97,6 +106,7 @@ Image& Image::operator = (Image&& other)
 	std::swap(w, other.w);
 	std::swap(data, other.data);
 	std::swap(alpha_behavior, other.alpha_behavior);
+	std::swap(sampling_mode, other.sampling_mode);
 
 	return *this;
 }
