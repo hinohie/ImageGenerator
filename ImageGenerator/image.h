@@ -33,6 +33,9 @@ namespace IMAGE {
 		Image(const std::string& filename);
 		~Image();
 
+		Image& operator = (const Image& other);
+		Image& operator = (Image&& other);
+
 		void setsize(int _w, int _h);
 		uchar dtoc(double x);
 		void clean(double rr = 1.0, double gg = 1.0, double bb = 1.0);

@@ -81,6 +81,26 @@ Image::Image(const std::string& filename) {
 
 Image::~Image() { if (data) delete[] data; }
 
+
+Image& Image::operator = (const Image& other)
+{
+	Image copy(other);
+	std::swap(*this, copy);
+	return *this;
+}
+
+Image& Image::operator = (Image&& other)
+{
+	if (&other == this) { return *this; }
+
+	std::swap(h, other.h);
+	std::swap(w, other.w);
+	std::swap(data, other.data);
+	std::swap(alpha_behavior, other.alpha_behavior);
+
+	return *this;
+}
+
 void Image::setsize(int _w, int _h) {
 	h = _h; w = _w;
 	if (data)delete[] data;
