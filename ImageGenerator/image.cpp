@@ -29,30 +29,92 @@ using namespace IMAGE;
 **********************************/
 
 
-Image::Image() { h = w = 0; data = NULL; alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA; }
-Image::~Image() { if (data) delete[] data; }
-Image::Image(int _w, int _h) {
-	h = _h; w = _w;
-	data = new uchar[h * w * 4];
-	clean();
-	alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA;
+Image::Image()
+	: h(0)
+	, w(0)
+	, data(NULL)
+	, alpha_behavior(ALPHA_BEHAVIOR::ONE_MINUS_ALPHA)
+{
 }
+
+Image::Image(int _w, int _h)
+	: h(_h)
+	, w(_w)
+	, data(new uchar[h * w * 4])
+	, alpha_behavior(ALPHA_BEHAVIOR::ONE_MINUS_ALPHA)
+{
+	clean();
+}
+
+Image::Image(const Image& other)
+	: h(other.h)
+	, w(other.w)
+	, data(new uchar[h * w * 4])
+	, alpha_behavior(other.alpha_behavior)
+{
+	for (int i = 0; i < h; i++) {
+		for (int j = 0; j < w; j++) {
+			int id = i * w + j;
+			data[id * 4 + 0] = other.data[id * 4 + 0];
+			data[id * 4 + 1] = other.data[id * 4 + 1];
+			data[id * 4 + 2] = other.data[id * 4 + 2];
+			data[id * 4 + 3] = other.data[id * 4 + 3];
+		}
+	}
+}
+
+Image::Image(Image&& other)
+	: h(other.h)
+	, w(other.w)
+	, data(other.data)
+	, alpha_behavior(other.alpha_behavior)
+{
+	other.h = 0;
+	other.w = 0;
+	other.data = NULL;
+}
+
 Image::Image(const std::string& filename) {
 	Load(filename);
 	alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA;
 }
+
+Image::~Image() { if (data) delete[] data; }
+
+
+Image& Image::operator = (const Image& other)
+{
+	Image copy(other);
+	std::swap(*this, copy);
+	return *this;
+}
+
+Image& Image::operator = (Image&& other)
+{
+	if (&other == this) { return *this; }
+
+	std::swap(h, other.h);
+	std::swap(w, other.w);
+	std::swap(data, other.data);
+	std::swap(alpha_behavior, other.alpha_behavior);
+
+	return *this;
+}
+
 void Image::setsize(int _w, int _h) {
 	h = _h; w = _w;
 	if (data)delete[] data;
 	data = new uchar[h * w * 4];
 	clean();
 }
+
 uchar Image::dtoc(double x) {
 	int xx = x * 255;
 	if (xx < 0)xx = 0;
 	if (xx > 255)xx = 255;
 	return xx;
 }
+
 void Image::clean(double rr, double gg, double bb) {
 	uchar r = dtoc(rr);
 	uchar g = dtoc(gg);
