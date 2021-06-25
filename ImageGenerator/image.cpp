@@ -32,7 +32,7 @@ using namespace IMAGE;
 Image::Image()
 	: h(0)
 	, w(0)
-	, data(nullptr)
+	, data(NULL)
 	, alpha_behavior(ALPHA_BEHAVIOR::ONE_MINUS_ALPHA)
 {
 }
@@ -71,7 +71,7 @@ Image::Image(Image&& other)
 {
 	other.h = 0;
 	other.w = 0;
-	other.data = nullptr;
+	other.data = NULL;
 }
 
 Image::Image(const std::string& filename) {
