@@ -54,6 +54,7 @@ namespace IMAGE {
 		void draw_image(double cx, double cy, double px, double py, const Image& img);
 
 		ALPHA_BEHAVIOR alpha_behavior;
+		SAMPLING_MODE  sampling_mode;
 
 		void flip_x();
 		void flip_y();
