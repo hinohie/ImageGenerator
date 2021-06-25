@@ -151,7 +151,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ImageGenerator/src/image.cpp" />
-    <ClCompile Include="ImageGenerator/sample/main.cpp" />
+    <ClCompile Include="sampleImages/src/main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImageGenerator/include/image.h" />
