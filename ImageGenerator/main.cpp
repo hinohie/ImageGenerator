@@ -109,7 +109,7 @@ void generate_sample4() {
 	img.Save(filename);
 }
 void generate_sample5() {
-	printf("Sample 5 : Alpha blending\n");
+	printf("Sample 5 : Alpha blending and Alpha Behavior\n");
 
 	std::string filename = "ImageGenerator/sample5.png";
 
@@ -117,6 +117,8 @@ void generate_sample5() {
 	int width = 320;
 	int height = 240;
 	IMAGE::Image img(width, height);
+
+	img.clean(0.0, 0.0, 0.0);
 
 	int sx, sy;
 	int ex, ey;
@@ -131,6 +133,15 @@ void generate_sample5() {
 	img.draw_circle(width * 0.1, height * 0.2, std::min(width, height) * 0.7, 1.0, 0.0, 0.0, 0.7);
 	// green alpha 0.5
 	img.draw_circle(width * 0.8, height * 0.9, std::min(width, height) * 0.7, 0.0, 1.0, 0.0, 0.5);
+	// change alpha behavior and summation it.
+	img.alpha_behavior = IMAGE::Image::ALPHA_BEHAVIOR::ONE;
+	int n = 100;
+	for (int i = 0; i < n; i++) {
+		// alpha overwhelming
+		img.draw_circle(width * 0.1, height * 0.9, std::min(width, height) * 0.7 * (n - i) / n, pow(0.7, (n - i) * 1.2 / n), pow(0.5, (n - i) * 1.5 / n), 1.0, 1.5 / n);
+	}
+
+	img.alpha_behavior = IMAGE::Image::ALPHA_BEHAVIOR::ONE_MINUS_ALPHA;
 
 	img.Save(filename);
 }

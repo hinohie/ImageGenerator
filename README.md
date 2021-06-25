@@ -18,7 +18,7 @@
   <tr><td><p align="center"><img src="./ImageGenerator/sample3.png" alt="sample3"/></p></td><td><p align="center"><img src="./ImageGenerator/sample4.png" alt="sample4"/></p></td></tr>
   <tr><td><p align="center">Sample 3 : Rectangles + Diamond + Circle only border   </p></td><td><p align="center">Sample 4 : Lines                                       </p></td></tr>
   <tr><td><p align="center"><img src="./ImageGenerator/sample5.png" alt="sample5"/></p></td><td><p align="center"><img src="./ImageGenerator/sample6.png" alt="sample6"/></p></td></tr>
-  <tr><td><p align="center">Sample 5 : Alpha blending                              </p></td><td><p align="center">Sample 6 : Load Image                                  </p></td></tr>
+  <tr><td><p align="center">Sample 5 : Alpha blending and Alpha Behavior           </p></td><td><p align="center">Sample 6 : Load Image                                  </p></td></tr>
   <tr><td colspan=2><p align="center"><img src="./ImageGenerator/sample7.png" alt="sample7"/>                                                                            </p></td></tr>
   <tr><td colspan=2><p align="center">Sample 7 : Whatever you want                                                                                                       </p></td></tr>
   <tr><td colspan=2><p align="center"><img src="./ImageGenerator/sample8.png" alt="sample8"/>                                                                            </p></td></tr>
