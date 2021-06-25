@@ -36,7 +36,7 @@ Image::Image()
 	, alpha_behavior(ALPHA_BEHAVIOR::ONE_MINUS_ALPHA)
 {
 }
-Image::~Image() { if (data) delete[] data; }
+
 Image::Image(int _w, int _h)
 	: h(_h)
 	, w(_w)
@@ -45,22 +45,28 @@ Image::Image(int _w, int _h)
 {
 	clean();
 }
+
 Image::Image(const std::string& filename) {
 	Load(filename);
 	alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA;
 }
+
+Image::~Image() { if (data) delete[] data; }
+
 void Image::setsize(int _w, int _h) {
 	h = _h; w = _w;
 	if (data)delete[] data;
 	data = new uchar[h * w * 4];
 	clean();
 }
+
 uchar Image::dtoc(double x) {
 	int xx = x * 255;
 	if (xx < 0)xx = 0;
 	if (xx > 255)xx = 255;
 	return xx;
 }
+
 void Image::clean(double rr, double gg, double bb) {
 	uchar r = dtoc(rr);
 	uchar g = dtoc(gg);

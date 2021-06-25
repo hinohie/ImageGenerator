@@ -27,9 +27,9 @@ namespace IMAGE {
 		int h, w;
 		uchar* data;
 		Image();
-		~Image();
 		Image(int _w, int _h);
 		Image(const std::string& filename);
+		~Image();
 
 		void setsize(int _w, int _h);
 		uchar dtoc(double x);
