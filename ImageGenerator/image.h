@@ -28,6 +28,8 @@ namespace IMAGE {
 		uchar* data;
 		Image();
 		Image(int _w, int _h);
+		Image(const Image& other);
+		Image(Image&& other);
 		Image(const std::string& filename);
 		~Image();
 

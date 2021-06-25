@@ -46,6 +46,34 @@ Image::Image(int _w, int _h)
 	clean();
 }
 
+Image::Image(const Image& other)
+	: h(other.h)
+	, w(other.w)
+	, data(new uchar[h * w * 4])
+	, alpha_behavior(other.alpha_behavior)
+{
+	for (int i = 0; i < h; i++) {
+		for (int j = 0; j < w; j++) {
+			int id = i * w + j;
+			data[id * 4 + 0] = other.data[id * 4 + 0];
+			data[id * 4 + 1] = other.data[id * 4 + 1];
+			data[id * 4 + 2] = other.data[id * 4 + 2];
+			data[id * 4 + 3] = other.data[id * 4 + 3];
+		}
+	}
+}
+
+Image::Image(Image&& other)
+	: h(other.h)
+	, w(other.w)
+	, data(other.data)
+	, alpha_behavior(other.alpha_behavior)
+{
+	other.h = 0;
+	other.w = 0;
+	other.data = nullptr;
+}
+
 Image::Image(const std::string& filename) {
 	Load(filename);
 	alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA;
