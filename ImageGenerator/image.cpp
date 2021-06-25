@@ -29,13 +29,21 @@ using namespace IMAGE;
 **********************************/
 
 
-Image::Image() { h = w = 0; data = NULL; alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA; }
+Image::Image()
+	: h(0)
+	, w(0)
+	, data(nullptr)
+	, alpha_behavior(ALPHA_BEHAVIOR::ONE_MINUS_ALPHA)
+{
+}
 Image::~Image() { if (data) delete[] data; }
-Image::Image(int _w, int _h) {
-	h = _h; w = _w;
-	data = new uchar[h * w * 4];
+Image::Image(int _w, int _h)
+	: h(_h)
+	, w(_w)
+	, data(new uchar[h * w * 4])
+	, alpha_behavior(ALPHA_BEHAVIOR::ONE_MINUS_ALPHA)
+{
 	clean();
-	alpha_behavior = ALPHA_BEHAVIOR::ONE_MINUS_ALPHA;
 }
 Image::Image(const std::string& filename) {
 	Load(filename);
