@@ -38,6 +38,9 @@ ipch/
 # Remainings from resolvings conflicts in Source Control
 *.orig
 
+# Remove .vscode
+.vscode/*
+
 # SQL Server files
 **/App_Data/*.mdf
 **/App_Data/*.ldf
