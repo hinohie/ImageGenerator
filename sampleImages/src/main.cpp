@@ -9,6 +9,17 @@ int nextint(int s, int t) {
 	static std::mt19937 rnd;
 	return (int)(rnd() % (t - s + 1)) + s;
 }
+bool sample_image_changed(const IMAGE::Image &img, const std::string filename){
+	IMAGE::Image prev(filename);
+	if(img.w != prev.w)return true;
+	if(img.h != prev.h)return true;
+	for(int i = 0; i < img.h * img.w * 4; i++) {
+		if(img.data[i] != prev.data[i]){
+			return true;
+		}
+	}
+	return false;
+}
 
 const std::string sampleImagesDir = "sampleImages/";
 const std::string resourcesDir = "resources/";
@@ -33,7 +44,9 @@ void generate_sample1() {
 		}
 	}
 
-	img.Save(filename);
+	if(sample_image_changed(img, filename)){
+		img.Save(filename);
+	}
 }
 void generate_sample2() {
 	printf("Sample 2 : Rectangles + Diamond + Circle\n");
@@ -54,7 +67,9 @@ void generate_sample2() {
 	// blue circle
 	img.draw_circle(width * 0.8, height * 0.7, std::min(width, height) * 0.3, 0.0, 0.0, 1.0);
 
-	img.Save(filename);
+	if(sample_image_changed(img, filename)){
+		img.Save(filename);
+	}
 }
 void generate_sample3() {
 	printf("Sample 3 : Rectangles + Diamond + Circle only border\n");
@@ -78,7 +93,9 @@ void generate_sample3() {
 	img.draw_circle_border(width * 0.8, height * 0.7, std::min(width, height) * 0.3, std::min(width, height) * 0.02, 0.0, 0.0, 1.0);
 	img.draw_circle_border(width * 0.8, height * 0.7, std::min(width, height) * 0.1, std::min(width, height) * 0.02, 0.0, 0.0, 1.0);
 
-	img.Save(filename);
+	if(sample_image_changed(img, filename)){
+		img.Save(filename);
+	}
 }
 
 void generate_sample4() {
@@ -113,7 +130,9 @@ void generate_sample4() {
 	ex = nextint(0, width); ey = nextint(0, height);
 	img.draw_line_gradient(sx, sy, ex, ey, std::min(width, height) * 0.02, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-	img.Save(filename);
+	if(sample_image_changed(img, filename)){
+		img.Save(filename);
+	}
 }
 void generate_sample5() {
 	printf("Sample 5 : Alpha blending and Alpha Behavior\n");
@@ -150,7 +169,9 @@ void generate_sample5() {
 
 	img.mAlphaBehavior = IMAGE::AlphaBehaviorType::ONE_MINUS_ALPHA;
 
-	img.Save(filename);
+	if(sample_image_changed(img, filename)){
+		img.Save(filename);
+	}
 }
 void generate_sample6() {
 	printf("Sample 6 : Load Image\n");
@@ -215,7 +236,9 @@ void generate_sample6() {
 		}
 	}
 
-	img.Save(filename);
+	if(sample_image_changed(img, filename)){
+		img.Save(filename);
+	}
 
 	for (i = 0; i < n; i++) {
 		delete[] a[i];
@@ -276,7 +299,9 @@ void generate_sample7() {
 		a[i].draw(img);
 	}
 
-	img.Save(filename);
+	if(sample_image_changed(img, filename)){
+		img.Save(filename);
+	}
 
 	delete[] a;
 }
@@ -304,7 +329,9 @@ void generate_sample8() {
 	img.draw_image(20, 300, 480, 320, base);
 	img.draw_image(0, 180, 20, 480, base);
 
-	img.Save(filename);
+	if(sample_image_changed(img, filename)){
+		img.Save(filename);
+	}
 }
 void generate_sample9() {
 	printf("Sample 9 : Triangle and Polygon\n");
@@ -350,7 +377,9 @@ void generate_sample9() {
 
 	img.draw_polygon(2*n, px, py, 0.9, 0.8, 0.5);
 
-	img.Save(filename);
+	if(sample_image_changed(img, filename)){
+		img.Save(filename);
+	}
 }
 int main() {
 	generate_sample1();
