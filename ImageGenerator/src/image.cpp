@@ -410,19 +410,68 @@ void Image::draw_triangle(double p0x, double p0y, double p1x, double p1y, double
 		}
 	}
 }
-void Image::draw_polygon(int n, double *px, double *py, double rr, double gg, double bb, double aa) {
+void Image::draw_polygon(int n, const double *px, const double *py, double rr, double gg, double bb, double aa) {
 	if(n < 3) return;
 	double signedArea = 0.0;
-	for(int i = 0; i < n; i++) {
-		signedArea += ccw(0, 0, px[i], py[i], px[(i + 1)%n], py[(i + 1)%n]);
+	for(int k = 0; k < n; k++) {
+		signedArea += ccw(0, 0, px[k], py[k], px[(k + 1)%n], py[(k + 1)%n]);
 	}
 	double area = std::abs(signedArea);
 	// NOTE: our xy-coordinate is not normal. clockwise will have positive area
 	bool is_cw = (signedArea > E);
-	// TODO
+
+	std::vector<std::vector<double>> vf(h, std::vector<double>(w, 0.0));
+
+	for(int k = 0; k < n; k++) {
+		double sx = px[k];
+		double ex = px[(k+1)%n];
+		double sy = py[k];
+		double ey = py[(k+1)%n];
+		double sign = is_cw ? -1.0 : 1.0;
+		if(sx > ex){
+			std::swap(sx, ex);
+			std::swap(sy, ey);
+			sign = -sign;
+		}
+		// add vf area between x:[sx ex) and y:[0 py]
+		for(int j = (int)sx - 1; j <= (int)ex + 1; j++) {
+			if(j < sx) continue;
+			if(j < 0) continue;
+			if(j >= ex) continue;
+			if(j >= w) continue;
+			double rate = (j - sx) / (ex - sx);
+			double py = sy + rate * (ey - sy);
+			for(int i = 0; i < h; i++){
+				if(i > py)break;
+				vf[i][j] += sign;
+			}
+		}
+	}
+
+	for(int i = 0; i < h; i++) {
+		for(int j = 0; j < w; j++) {
+			if(vf[i][j] > 1.0 - E) {
+				set_pixel(i, j, rr, gg, bb, aa);
+			}
+		}
+	}
 }
-void Image::draw_polygon(int n, std::vector<double> px, std::vector<double> py, double rr, double gg, double bb, double aa) {
+void Image::draw_polygon(int n, const std::vector<double> &px, const std::vector<double> &py, double rr, double gg, double bb, double aa) {
+	if(n > std::min(px.size(), py.size())) n = std::min(px.size(), py.size());
 	draw_polygon(n, px.data(), py.data(), rr, gg, bb, aa);
+}
+void Image::draw_polygon(int n, const double *pxy, double rr, double gg, double bb, double aa) {
+	std::vector<double> px(n);
+	std::vector<double> py(n);
+	for(int i=0; i<n; i++){
+		px[i] = pxy[i+i+0];
+		py[i] = pxy[i+i+1];
+	}
+	draw_polygon(n, px, py, rr, gg, bb, aa);
+}
+void Image::draw_polygon(int n, const std::vector<double> &pxy, double rr, double gg, double bb, double aa) {
+	if(n > pxy.size() / 2) n = pxy.size() / 2;
+	draw_polygon(n, pxy.data(), rr, gg, bb, aa);
 }
 void Image::draw_image(double cx, double cy, double px, double py, const Image& img) {
 	if (cx > px)std::swap(cx, px);

@@ -316,6 +316,16 @@ void generate_sample9() {
 	int height = 240;
 	IMAGE::Image img(width, height);
 
+	const double vertex[5][2] = {
+		{10, 10},
+		{10, 230},
+		{310, 230},
+		{310, 10},
+		{160, 20},
+	};
+
+	img.draw_polygon(5, &vertex[0][0], 0.1, 0.1, 0.1, 1.0);
+
 	img.draw_triangle(20, 20, 200, 300, 240, 60, 1.0, 0.0, 0.0);
 	img.draw_triangle(40, 20, 400, 30, 200, 400, 0.0, 1.0, 1.0, 0.5);
 
@@ -338,14 +348,7 @@ void generate_sample9() {
 		}
 	}
 
-	//img.draw_polygon(2*n, px, py, 0.9, 0.8, 0.5);
-	//draw_polygon is not work yet. just draw it with draw_triangle
-	img.draw_triangle(px[0], py[0], px[1], py[1], px[2*n-1], py[2*n-1], 0.9, 0.8, 0.5);
-	img.draw_triangle(px[n], py[n], px[n+1], py[n+1], px[n-1], py[n-1], 0.9, 0.8, 0.5);
-	for(k = 1; k < n - 1; k++) {
-		img.draw_triangle(px[k], py[k], px[k+1], py[k+1], px[2*n-k], py[2*n-k], 0.9, 0.8, 0.5);
-		img.draw_triangle(px[k+1], py[k+1], px[2*n-k], py[2*n-k],px[2*n-k-1], py[2*n-k-1], 0.9, 0.8, 0.5);
-	}
+	img.draw_polygon(2*n, px, py, 0.9, 0.8, 0.5);
 
 	img.Save(filename);
 }
