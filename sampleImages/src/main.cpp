@@ -306,6 +306,49 @@ void generate_sample8() {
 
 	img.Save(filename);
 }
+void generate_sample9() {
+	printf("Sample 9 : Triangle and Polygon\n");
+
+	std::string filename = sampleImagesDir + "sample9.png";
+
+	int i, j, k;
+	int width = 320;
+	int height = 240;
+	IMAGE::Image img(width, height);
+
+	img.draw_triangle(20, 20, 200, 300, 240, 60, 1.0, 0.0, 0.0);
+	img.draw_triangle(40, 20, 400, 30, 200, 400, 0.0, 1.0, 1.0, 0.5);
+
+	int n = 5;
+	std::vector<double> px(2*n);
+	std::vector<double> py(2*n);
+
+	for(k = 0; k < n; k++) {
+		double cx = width * 0.2 + (k&1 ? width * 0.6 : 0.0);
+		double cy = height * 0.2 + height * 0.6 * k/n;
+		px[k] = cx - width * 0.05;
+		py[k] = cy;
+		if(k == 0){
+			px[n] = width * 0.2 + (n&1 ? width * 0.6 : 0.0);
+			py[n] = height * 0.2 + height * 0.6;
+		}
+		else{
+			px[2*n - k] = cx + width * 0.05;
+			py[2*n - k] = cy;
+		}
+	}
+
+	//img.draw_polygon(2*n, px, py, 0.9, 0.8, 0.5);
+	//draw_polygon is not work yet. just draw it with draw_triangle
+	img.draw_triangle(px[0], py[0], px[1], py[1], px[2*n-1], py[2*n-1], 0.9, 0.8, 0.5);
+	img.draw_triangle(px[n], py[n], px[n+1], py[n+1], px[n-1], py[n-1], 0.9, 0.8, 0.5);
+	for(k = 1; k < n - 1; k++) {
+		img.draw_triangle(px[k], py[k], px[k+1], py[k+1], px[2*n-k], py[2*n-k], 0.9, 0.8, 0.5);
+		img.draw_triangle(px[k+1], py[k+1], px[2*n-k], py[2*n-k],px[2*n-k-1], py[2*n-k-1], 0.9, 0.8, 0.5);
+	}
+
+	img.Save(filename);
+}
 int main() {
 	generate_sample1();
 	generate_sample2();
@@ -315,5 +358,6 @@ int main() {
 	generate_sample6();
 	generate_sample7();
 	generate_sample8();
+	generate_sample9();
 	return 0;
 }

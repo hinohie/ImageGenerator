@@ -28,6 +28,15 @@ using namespace IMAGE;
 *                                 *
 **********************************/
 
+namespace {
+
+double ccw(double px, double py, double qx, double qy, double rx, double ry){
+	double xx = px*qy + qx*ry + rx*py;
+	double yy = py*qx + qy*rx + ry*px;
+	return xx - yy;
+}
+
+} // namespace
 
 Image::Image()
 	: h(0)
@@ -385,6 +394,35 @@ void Image::draw_line_gradient(double cx, double cy, double px, double py, doubl
 			}
 		}
 	}
+}
+void Image::draw_triangle(double p0x, double p0y, double p1x, double p1y, double p2x, double p2y, double rr, double gg, double bb, double aa) {
+	double signedArea = ccw(p0x, p0y, p1x, p1y, p2x, p2y);
+	double area = std::abs(signedArea);
+	for(int i = 0; i < h; i++) {
+		for(int j = 0; j < w; j++) {
+			double cur
+			 = std::abs(ccw(j, i, p0x, p0y, p1x, p1y))
+			 + std::abs(ccw(j, i, p1x, p1y, p2x, p2y))
+			 + std::abs(ccw(j, i, p2x, p2y, p0x, p0y));
+			if(cur - area < E){
+				set_pixel(i, j, rr, gg, bb, aa);
+			}
+		}
+	}
+}
+void Image::draw_polygon(int n, double *px, double *py, double rr, double gg, double bb, double aa) {
+	if(n < 3) return;
+	double signedArea = 0.0;
+	for(int i = 0; i < n; i++) {
+		signedArea += ccw(0, 0, px[i], py[i], px[(i + 1)%n], py[(i + 1)%n]);
+	}
+	double area = std::abs(signedArea);
+	// NOTE: our xy-coordinate is not normal. clockwise will have positive area
+	bool is_cw = (signedArea > E);
+	// TODO
+}
+void Image::draw_polygon(int n, std::vector<double> px, std::vector<double> py, double rr, double gg, double bb, double aa) {
+	draw_polygon(n, px.data(), py.data(), rr, gg, bb, aa);
 }
 void Image::draw_image(double cx, double cy, double px, double py, const Image& img) {
 	if (cx > px)std::swap(cx, px);
