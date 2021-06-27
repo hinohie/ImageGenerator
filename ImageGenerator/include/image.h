@@ -53,8 +53,10 @@ namespace IMAGE {
 		void draw_line(double cx, double cy, double px, double py, double radius, double rr, double gg, double bb, double aa = 1.0);
 		void draw_line_gradient(double cx, double cy, double px, double py, double radius, double rr, double gg, double bb, double rrr, double ggg, double bbb);
 		void draw_triangle(double p0x, double p0y, double p1x, double p1y, double p2x, double p2y, double rr, double gg, double bb, double aa = 1.0);
-		void draw_polygon(int n, double *px, double *py, double rr, double gg, double bb, double aa = 1.0);
-		void draw_polygon(int n, std::vector<double> px, std::vector<double> py, double rr, double gg, double bb, double aa = 1.0);
+		void draw_polygon(int n, const double *px, const double *py, double rr, double gg, double bb, double aa = 1.0);
+		void draw_polygon(int n, const std::vector<double> &px, const std::vector<double> &py, double rr, double gg, double bb, double aa = 1.0);
+		void draw_polygon(int n, const double *pxy, double rr, double gg, double bb, double aa = 1.0);
+		void draw_polygon(int n, const std::vector<double> &pxy, double rr, double gg, double bb, double aa = 1.0);
 		void draw_image(double cx, double cy, double px, double py, const Image& img);
 
 		AlphaBehaviorType mAlphaBehavior;
