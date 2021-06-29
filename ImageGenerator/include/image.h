@@ -32,12 +32,12 @@ namespace IMAGE {
 		Image();
 		Image(int _w, int _h);
 		Image(const Image& other);
-		Image(Image&& other);
+		Image(Image&& other) noexcept;
 		Image(const std::string& filename);
 		~Image();
 
 		Image& operator = (const Image& other);
-		Image& operator = (Image&& other);
+		Image& operator = (Image&& other) noexcept;
 
 		void setsize(int _w, int _h);
 		uchar dtoc(double x);
