@@ -151,11 +151,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ImageGenerator/src/image.cpp" />
+    <ClCompile Include="ImageGenerator/src/painter.cpp" />
     <ClCompile Include="sampleImages/src/main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImageGenerator/include/image.h" />
     <ClInclude Include="ImageGenerator/include/image_property.h" />
+    <ClInclude Include="ImageGenerator/include/painter.h" />
     <ClInclude Include="library/include/stb/stb_image.h" />
     <ClInclude Include="library/include/stb/stb_image_write.h" />
   </ItemGroup>
