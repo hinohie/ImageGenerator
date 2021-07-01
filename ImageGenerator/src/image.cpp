@@ -75,7 +75,7 @@ Image::Image(const Image& other)
 	}
 }
 
-Image::Image(Image&& other)
+Image::Image(Image&& other) noexcept
 	: h(other.h)
 	, w(other.w)
 	, data(other.data)
@@ -107,7 +107,7 @@ Image& Image::operator = (const Image& other)
 	return *this;
 }
 
-Image& Image::operator = (Image&& other)
+Image& Image::operator = (Image&& other) noexcept
 {
 	if (&other == this) { return *this; }
 
