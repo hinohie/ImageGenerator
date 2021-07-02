@@ -57,13 +57,6 @@ void Painter::Draw(Image& image, const Rectangle& rectangle, const Image& source
                      sourceImage);
 }
 
-void Painter::Draw(Image& image, const Rectangle& rectangle, const Color& color) const
-{
-    image.draw_rectangle(rectangle.p1.x, rectangle.p1.y,
-                         rectangle.p2.x, rectangle.p2.y,
-                         color.r, color.g, color.b, color.a);
-}
-
 void Painter::DrawBorder(Image& image, const Circle& circle, const double width, const Color& color) const
 {
     image.draw_circle_border(circle.center.x, circle.center.y, circle.radius, width,
