@@ -4,6 +4,8 @@
 #include<random>
 #include"image.h"
 
+using lf = double;
+
 namespace{
 int nextint(int s, int t) {
 	static std::mt19937 rnd;
@@ -24,6 +26,31 @@ bool sample_image_changed(const IMAGE::Image &img, const std::string filename){
 const std::string sampleImagesDir = "sampleImages/";
 const std::string resourcesDir = "resources/";
 
+struct vec2 {
+	lf x, y;
+	vec2() {
+		x = y = 0;
+	}
+	vec2(lf x, lf y) :x(x), y(y) {}
+
+	vec2 operator +(const vec2& z) {
+		return vec2(x + z.x, y + z.y);
+	}
+	vec2 operator -(const vec2& z) {
+		return vec2(x - z.x, y - z.y);
+	}
+	vec2 operator *(const lf& z) {
+		return vec2(x * z, y * z);
+	}
+	lf operator *(const vec2& z) {
+		return x * z.x + y * z.y;
+	}
+	void normalize() {
+		lf dd = sqrt(x * x + y * y);
+		x /= dd;
+		y /= dd;
+	}
+};
 } // namespace
 
 
@@ -381,6 +408,172 @@ void generate_sample9() {
 		img.Save(filename);
 	}
 }
+
+void generate_sample10()
+{
+	printf("Sample 10 : NUI Infographic\n");
+
+	std::string filename = sampleImagesDir + "sample10.png";
+
+	int i, j, k;
+	int width = 960;
+	int height = 640;
+	IMAGE::Image img(width, height);
+
+	// convert corrdinate [0~6],[0~4] to [width], [height] without scale
+	auto convertitox = [width, height](vec2 p) {
+		lf diff = std::min(width / 6.0, height / 4.0);
+		lf x = (p.x - 3.0) * diff + width * 0.5;
+		lf y = (2.0 - p.y) * diff + height * 0.5;
+		return vec2(x, y);
+	};
+
+	std::vector<std::vector<vec2>> vn =
+	{
+		// n
+		{convertitox(vec2(1, 1)), convertitox(vec2(1, 3))},
+		{convertitox(vec2(1, 3)), convertitox(vec2(2, 1))},
+		{convertitox(vec2(2, 1)), convertitox(vec2(2, 3))},
+		// u
+		{convertitox(vec2(2.5, 3)), convertitox(vec2(2.5, 1))},
+		{convertitox(vec2(2.5, 1)), convertitox(vec2(3.5, 1))},
+		{convertitox(vec2(3.5, 1)), convertitox(vec2(3.5, 3))},
+		//i
+		{convertitox(vec2(4, 3)), convertitox(vec2(4.5, 3))},
+		{convertitox(vec2(4.5, 3)), convertitox(vec2(5, 3))},
+		{convertitox(vec2(4, 1)), convertitox(vec2(4.5, 1))},
+		{convertitox(vec2(4.5, 1)), convertitox(vec2(5, 1))},
+		{convertitox(vec2(4.5, 1)), convertitox(vec2(4.5, 3))},
+	};
+
+	lf radius_scale = std::min(width, height);
+	lf radius_max = 30.0 / 960.0 * radius_scale;
+	lf radius_min = 20.0 / 960.0 * radius_scale;
+	lf dx[10] = { 0,1,1,1,0,-1,-1,-1,0,0 };
+	lf dy[10] = { -1,-1,0,1,1,1,0,-1,0,0 };
+
+	{
+		vec2 dif = vn[1][1] - vn[1][0];
+		dif.y += 2 * radius_max;
+		lf xx = dif.x;
+		lf yy = dif.y / dif.x * 2 * radius_max - radius_max;
+		dif.x = 1.0;
+		dif.y = yy / radius_max;
+		dx[8] = dif.x;
+		dy[8] = dif.y;
+		dx[9] = -dif.x;
+		dy[9] = -dif.y;
+	}
+
+	std::vector<std::vector<std::vector<int>>> vdn = {
+		// n
+		{{5,3}, {8, 7}},
+		{{1,7}, {5, 3}},
+		{{9,3}, {1, 7}},
+		// u
+		{{1,7}, {7, 1}},
+		{{7,3}, {5, 1}},
+		{{7,1}, {1, 7}},
+		// i
+		{{7,5}, {5, 1}},
+		{{1,3}, {3, 1}},
+		{{7,5}, {5, 7}},
+		{{1,5}, {3, 1}},
+		{{5,1}, {1, 5}},
+	};
+
+	lf global_scale = 1.0;
+	lf n_scale = 2.0;
+	lf u_scale = 1.5;
+	lf i_scale = 0.75;
+	std::vector<std::vector<lf>> vdo = {
+		// n
+		{0, n_scale},
+		{0, 0},
+		{n_scale, 0},
+		// u
+		{0, global_scale},
+		{u_scale, u_scale},
+		{global_scale, 0},
+		// i
+		{0, i_scale},
+		{global_scale, 0},
+		{0, global_scale},
+		{i_scale, 0},
+		{i_scale, i_scale},
+	};
+
+	img.clean(0.0, 0.0, 0.0);
+	img.set_transparency_color(0, 0, 0);
+
+	int vl = vn.size();
+	lf base_alpha = 0.8;
+	lf rr = 0.37;
+	lf gg = 0.67;
+	lf bb = 0.92;
+	// draw white
+	for (int k = 0; k < vl; k++) {
+		lf radius = radius_max;
+		std::vector<lf> px(4);
+		std::vector<lf> py(4);
+		std::vector<vec2> s(2);
+		s[0] = vn[k][0];
+		s[1] = vn[k][1];
+
+		for (int i = 0; i < 4; i++) {
+			px[i] = s[i / 2].x + dx[vdn[k][i / 2][i % 2]] * radius;
+			py[i] = s[i / 2].y + dy[vdn[k][i / 2][i % 2]] * radius;
+		}
+
+		img.draw_polygon(4, px, py, 1, 1, 1, 1);
+	}
+
+	// bluring
+	for (int i = 0; i < img.h; i++) {
+		for (int j = 0; j < img.w; j++) {
+			int id = i * img.w + j;
+			if (img.data[id * 4 + 3] == 255) {
+				img.data[id * 4 + 3] = (base_alpha * 255);
+			}
+		}
+	}
+
+	for (int k = 0; k < vl; k++) {
+		lf radius = radius_min;
+		std::vector<lf> px(4);
+		std::vector<lf> py(4);
+		std::vector<vec2> s(2);
+		s[0] = vn[k][0];
+		s[1] = vn[k][1];
+		vec2 diff = (s[1] - s[0]) * 0.5;
+		diff.normalize();
+		s[0] = s[0] + diff * vdo[k][0] * (radius_max - radius_min);
+		s[1] = s[1] - diff * vdo[k][1] * (radius_max - radius_min);
+
+		for (int i = 0; i < 4; i++) {
+			px[i] = s[i / 2].x + dx[vdn[k][i / 2][i % 2]] * radius;
+			py[i] = s[i / 2].y + dy[vdn[k][i / 2][i % 2]] * radius;
+		}
+
+		img.draw_polygon(4, px, py, 1, 1, 1, 1);
+	}
+	// coloring
+	for (int i = 0; i < img.h; i++) {
+		for (int j = 0; j < img.w; j++) {
+			int id = i * img.w + j;
+			if (img.data[id * 4 + 3] == 255) {
+				img.data[id * 4 + 0] = (rr * 255);
+				img.data[id * 4 + 1] = (gg * 255);
+				img.data[id * 4 + 2] = (bb * 255);
+			}
+		}
+	}
+
+	if (sample_image_changed(img, filename)) {
+		img.Save(filename);
+	}
+}
+
 int main() {
 	generate_sample1();
 	generate_sample2();
@@ -391,5 +584,6 @@ int main() {
 	generate_sample7();
 	generate_sample8();
 	generate_sample9();
+	generate_sample10();
 	return 0;
 }
