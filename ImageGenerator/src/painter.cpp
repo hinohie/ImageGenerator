@@ -43,12 +43,25 @@ void Painter::Draw(Image& image, const std::size_t n, const Coord* coords, const
 
     const double* data_ptr = reinterpret_cast<const double*>(coords);
     image.draw_polygon(n, data_ptr,
-                    color.r, color.g, color.b, color.a);
+                       color.r, color.g, color.b, color.a);
 }
-
-void Painter::Draw(Image& image, const std::vector<Coord>& coords, const Color& color) const
+void Painter::Draw(Image& image, const std::vector<Coord>&coords, const Color & color) const
 {
     Draw(image, coords.size(), coords.data(), color);
+}
+
+void Painter::Draw(Image& image, const Rectangle& rectangle, const Image& sourceImage) const
+{
+    image.draw_image(rectangle.p1.x, rectangle.p1.y,
+                     rectangle.p2.x, rectangle.p2.y,
+                     sourceImage);
+}
+
+void Painter::Draw(Image& image, const Rectangle& rectangle, const Color& color) const
+{
+    image.draw_rectangle(rectangle.p1.x, rectangle.p1.y,
+                         rectangle.p2.x, rectangle.p2.y,
+                         color.r, color.g, color.b, color.a);
 }
 
 void Painter::DrawBorder(Image& image, const Circle& circle, const double width, const Color& color) const
@@ -81,6 +94,3 @@ void Painter::DrawGradient(Image& image, const Line& line, const Color3& color1,
                              color1.r, color1.g, color1.b,
                              color2.r, color2.g, color2.b);
 }
-
-
-
