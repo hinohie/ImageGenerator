@@ -402,6 +402,7 @@ void generate_sample9() {
 		}
 	}
 
+	img.mSamplingMode = IMAGE::SamplingModeType::SAMPLING_3x3;
 	img.draw_polygon(2*n, px, py, 0.9, 0.8, 0.5);
 
 	if(sample_image_changed(img, filename)){
@@ -419,6 +420,7 @@ void generate_sample10()
 	int width = 960;
 	int height = 640;
 	IMAGE::Image img(width, height);
+	img.mSamplingMode = IMAGE::SamplingModeType::SAMPLING_3x3;
 
 	// convert corrdinate [0~6],[0~4] to [width], [height] without scale
 	auto convertitox = [width, height](vec2 p) {
@@ -503,8 +505,8 @@ void generate_sample10()
 		{i_scale, i_scale},
 	};
 
-	img.clean(0.0, 0.0, 0.0);
-	img.set_transparency_color(0, 0, 0);
+	img.clean(1.0, 1.0, 1.0);
+	img.set_transparency_color(255, 255, 255);
 
 	int vl = vn.size();
 	lf base_alpha = 0.8;
@@ -532,8 +534,14 @@ void generate_sample10()
 	for (int i = 0; i < img.h; i++) {
 		for (int j = 0; j < img.w; j++) {
 			int id = i * img.w + j;
-			if (img.data[id * 4 + 3] == 255) {
-				img.data[id * 4 + 3] = (base_alpha * 255);
+			if (img.data[id * 4 + 3] > 0) {
+				img.data[id * 4 + 0] = 255;
+				img.data[id * 4 + 1] = 255;
+				img.data[id * 4 + 2] = 255;
+				int z = base_alpha * img.data[id * 4 + 3];
+				if (z < 0)z = 0;
+				if (z > 255)z = 255;
+				img.data[id * 4 + 3] = z;
 			}
 		}
 	}

@@ -30,11 +30,17 @@ using namespace IMAGE;
 
 namespace {
 
-double ccw(double px, double py, double qx, double qy, double rx, double ry){
-	double xx = px*qy + qx*ry + rx*py;
-	double yy = py*qx + qy*rx + ry*px;
+double ccw(double px, double py, double qx, double qy, double rx, double ry) {
+	double xx = px * qy + qx * ry + rx * py;
+	double yy = py * qx + qy * rx + ry * px;
 	return xx - yy;
 }
+
+const double sampling_table_3x3[3][3] = {
+	{1.0 / 36.0,  4.0 / 36.0, 1.0 / 36.0},
+	{4.0 / 36.0, 16.0 / 36.0, 4.0 / 36.0},
+	{1.0 / 36.0,  4.0 / 36.0, 1.0 / 36.0},
+};
 
 } // namespace
 
@@ -158,26 +164,51 @@ void Image::set_pixel(int i, int j, double rr, double gg, double bb, double aa) 
 	double pr = data[id * 4 + 0] / 255.0;
 	double pg = data[id * 4 + 1] / 255.0;
 	double pb = data[id * 4 + 2] / 255.0;
-	double pa = 1.0 - aa;
+	double pa = data[id * 4 + 3] / 255.0;
+
+	double alpha_scale = 1.0 - aa;
 	if (mAlphaBehavior == AlphaBehaviorType::ONE) {
-		pa = 1.0;
+		alpha_scale = 1.0;
 	}
 
-	uchar r = dtoc(rr * aa + pr * pa);
-	uchar g = dtoc(gg * aa + pg * pa);
-	uchar b = dtoc(bb * aa + pb * pa);
+	uchar r = dtoc(rr * aa + pr * alpha_scale);
+	uchar g = dtoc(gg * aa + pg * alpha_scale);
+	uchar b = dtoc(bb * aa + pb * alpha_scale);
+	uchar a = dtoc(aa + pa * alpha_scale);
 	data[id * 4 + 0] = r;
 	data[id * 4 + 1] = g;
 	data[id * 4 + 2] = b;
-	data[id * 4 + 3] = 255;
+	data[id * 4 + 3] = a;
 }
 void Image::draw_circle(double cx, double cy, double radius, double rr, double gg, double bb, double aa) {
 	for (int ci = cy - radius - 1; ci <= cy + radius + 1; ci++) {
 		for (int cj = cx - radius - 1; cj <= cx + radius + 1; cj++) {
-			double di = ci - cy;
-			double dj = cj - cx;
-			if (di * di + dj * dj <= radius * radius) {
-				set_pixel(ci, cj, rr, gg, bb, aa);
+			if (ci < 0 || ci >= h || cj < 0 || cj >= w)continue;
+			double vf = 0.0;
+			if (mSamplingMode == SamplingModeType::SAMPLING_3x3)
+			{
+				for (int di = -1; di <= 1; di++) {
+					for (int dj = -1; dj <= 1; dj++) {
+						double dy = ci + (di * 2.0) / 6.0 - cy;
+						double dx = cj + (dj * 2.0) / 6.0 - cx;
+						if (dy * dy + dx * dx <= radius * radius) {
+							vf += sampling_table_3x3[di + 1][dj + 1];
+						}
+					}
+				}
+			}
+			else
+			{
+				double di = ci - cy;
+				double dj = cj - cx;
+				if (di * di + dj * dj <= radius * radius) {
+					vf += 1.0;
+				}
+			}
+			if (vf < 0.0)vf = 0.0;
+			if (vf > 1.0)vf = 1.0;
+			if (vf > E) {
+				set_pixel(ci, cj, rr, gg, bb, aa * vf);
 			}
 		}
 	}
@@ -187,7 +218,7 @@ void Image::draw_circle_border(double cx, double cy, double radius, double borde
 		for (int cj = cx - radius - border_width / 2.0 - 1; cj <= cx + radius + border_width / 2.0 + 1; cj++) {
 			double di = ci - cy;
 			double dj = cj - cx;
-			if (di * di + dj * dj <= (radius+ border_width / 2.0) * (radius+ border_width / 2.0) && di * di + dj * dj >= (radius - border_width / 2.0) * (radius - border_width / 2.0)) {
+			if (di * di + dj * dj <= (radius + border_width / 2.0) * (radius + border_width / 2.0) && di * di + dj * dj >= (radius - border_width / 2.0) * (radius - border_width / 2.0)) {
 				set_pixel(ci, cj, rr, gg, bb, aa);
 			}
 		}
@@ -237,7 +268,7 @@ void Image::draw_rectangle_border(double cx, double cy, double px, double py, do
 			double dj = cj - cx;
 			double ei = ci - py;
 			double ej = cj - px;
-			if (di >= -border_width / 2.0 -E && dj >= -border_width / 2.0 -E && di <= border_width / 2.0 + py - cy + E && dj <= border_width / 2.0 + px - cx + E) {
+			if (di >= -border_width / 2.0 - E && dj >= -border_width / 2.0 - E && di <= border_width / 2.0 + py - cy + E && dj <= border_width / 2.0 + px - cx + E) {
 				if (abs(di) <= border_width / 2.0 || abs(dj) <= border_width / 2.0 || abs(ei) <= border_width / 2.0 || abs(ej) <= border_width / 2.0) {
 					set_pixel(ci, cj, rr, gg, bb, aa);
 				}
@@ -246,43 +277,60 @@ void Image::draw_rectangle_border(double cx, double cy, double px, double py, do
 	}
 }
 void Image::draw_line(double cx, double cy, double px, double py, double radius, double rr, double gg, double bb, double aa) {
-	std::vector<std::vector<bool>> vb(h, std::vector<bool>(w, false));
+	std::vector<std::vector<double>> vb(h, std::vector<double>(w, 0.0));
 	for (int ci = cy - radius - 1; ci <= cy + radius + 1; ci++) {
 		for (int cj = cx - radius - 1; cj <= cx + radius + 1; cj++) {
-			double di = ci - cy;
-			double dj = cj - cx;
-			if (di * di + dj * dj <= radius * radius) {
-				/*
-				if (di * di + dj * dj <= radius * radius * 0.9) {
-					set_pixel(ci, cj, rr, gg, bb);
+			if (mSamplingMode == SamplingModeType::SAMPLING_3x3)
+			{
+				for (int di = -1; di <= 1; di++) {
+					for (int dj = -1; dj <= 1; dj++) {
+						double dy = ci + (di * 2.0) / 6.0 - cy;
+						double dx = cj + (dj * 2.0) / 6.0 - cx;
+						if (dy * dy + dx * dx <= radius * radius) {
+							if (ci >= 0 && ci < h && cj >= 0 && cj < w) {
+								vb[ci][cj] += sampling_table_3x3[di + 1][dj + 1];
+							}
+						}
+					}
 				}
-				else {
-					set_pixel(ci, cj, rr * 0.1, gg * 0.1, bb * 0.1);
-				}
-				*/
-				if (ci >= 0 && ci < h && cj >= 0 && cj < w && !vb[ci][cj]) {
-					vb[ci][cj] = true;
-					set_pixel(ci, cj, rr, gg, bb, aa);
+			}
+			else
+			{
+				double di = ci - cy;
+				double dj = cj - cx;
+				if (di * di + dj * dj <= radius * radius) {
+					if (ci >= 0 && ci < h && cj >= 0 && cj < w && !vb[ci][cj]) {
+						vb[ci][cj] = 1.0;
+					}
 				}
 			}
 		}
 	}
 	for (int ci = py - radius - 1; ci <= py + radius + 1; ci++) {
 		for (int cj = px - radius - 1; cj <= px + radius + 1; cj++) {
-			double di = ci - py;
-			double dj = cj - px;
-			if (di * di + dj * dj <= radius * radius) {
-				/*
-				if (di * di + dj * dj <= radius * radius * 0.81) {
-					set_pixel(ci, cj, rr, gg, bb);
+			if (mSamplingMode == SamplingModeType::SAMPLING_3x3)
+			{
+				for (int di = -1; di <= 1; di++) {
+					for (int dj = -1; dj <= 1; dj++) {
+						double dy = ci + (di * 2.0) / 6.0 - py;
+						double dx = cj + (dj * 2.0) / 6.0 - px;
+						if (dy * dy + dx * dx <= radius * radius) {
+							if (ci >= 0 && ci < h && cj >= 0 && cj < w) {
+								vb[ci][cj] += sampling_table_3x3[di + 1][dj + 1];
+							}
+						}
+					}
 				}
-				else {
-					set_pixel(ci, cj, rr * 0.1, gg * 0.1, bb * 0.1);
-				}
-				*/
-				if (ci>=0 && ci<h && cj>=0 && cj<w && !vb[ci][cj]) {
-					vb[ci][cj] = true;
-					set_pixel(ci, cj, rr, gg, bb, aa);
+			}
+			else
+			{
+				double di = ci - py;
+				double dj = cj - px;
+				if (di * di + dj * dj <= radius * radius) {
+					if (ci >= 0 && ci < h && cj >= 0 && cj < w && !vb[ci][cj]) {
+						vb[ci][cj] = true;
+						set_pixel(ci, cj, rr, gg, bb, aa);
+					}
 				}
 			}
 		}
@@ -298,27 +346,41 @@ void Image::draw_line(double cx, double cy, double px, double py, double radius,
 	double det = vx * ny - vy * nx;
 	for (int ci = 0; ci < h; ci++) {
 		for (int cj = 0; cj < w; cj++) {
-			double di = ci - cy;
-			double dj = cj - cx;
+			if (mSamplingMode == SamplingModeType::SAMPLING_3x3)
+			{
+				for (int di = -1; di <= 1; di++) {
+					for (int dj = -1; dj <= 1; dj++) {
+						double dy = ci + (di * 2.0) / 6.0 - cy;
+						double dx = cj + (dj * 2.0) / 6.0 - cx;
 
-			double s = ny * dj - nx * di;
-			double t = -vy * dj + vx * di;
-			s /= det;
-			t /= det;
-			if (s < 0 || s > 1)continue;
-			if (t * t <= radius * radius) {
-				/*/
-				if (t * t <= radius * radius * 0.81) {
-					set_pixel(ci, cj, rr, gg, bb);
+						double s = ny * dx - nx * dy;
+						double t = -vy * dx + vx * dy;
+						s /= det;
+						t /= det;
+						if (s < 0 || s > 1)continue;
+						if (t * t <= radius * radius) {
+							vb[ci][cj] += sampling_table_3x3[di + 1][dj + 1];
+						}
+					}
 				}
-				else {
-					set_pixel(ci, cj, rr * 0.1, gg * 0.1, bb * 0.1);
+			}
+			else
+			{
+				double di = ci - cy;
+				double dj = cj - cx;
+
+				double s = ny * dj - nx * di;
+				double t = -vy * dj + vx * di;
+				s /= det;
+				t /= det;
+				if (s < 0 || s > 1)continue;
+				if (t * t <= radius * radius) {
+					vb[ci][cj] = 1.0;
 				}
-				*/
-				if (!vb[ci][cj]) {
-					vb[ci][cj] = true;
-					set_pixel(ci, cj, rr, gg, bb, aa);
-				}
+			}
+			if (vb[ci][cj] > 1.0)vb[ci][cj] = 1.0;
+			if (vb[ci][cj] > E) {
+				set_pixel(ci, cj, rr, gg, bb, aa * vb[ci][cj]);
 			}
 		}
 	}
@@ -398,23 +460,60 @@ void Image::draw_line_gradient(double cx, double cy, double px, double py, doubl
 void Image::draw_triangle(double p0x, double p0y, double p1x, double p1y, double p2x, double p2y, double rr, double gg, double bb, double aa) {
 	double signedArea = ccw(p0x, p0y, p1x, p1y, p2x, p2y);
 	double area = std::abs(signedArea);
-	for(int i = 0; i < h; i++) {
-		for(int j = 0; j < w; j++) {
-			double cur
-			 = std::abs(ccw(j, i, p0x, p0y, p1x, p1y))
-			 + std::abs(ccw(j, i, p1x, p1y, p2x, p2y))
-			 + std::abs(ccw(j, i, p2x, p2y, p0x, p0y));
-			if(cur - area < E){
-				set_pixel(i, j, rr, gg, bb, aa);
+	double minx = std::min(p0x, std::min(p1x, p2x)) - 2;
+	double maxx = std::max(p0x, std::max(p1x, p2x)) + 2;
+	double miny = std::min(p0y, std::min(p1y, p2y)) - 2;
+	double maxy = std::max(p0y, std::max(p1y, p2y)) + 2;
+	if (minx < 0)minx = 0;
+	if (maxx >= w)maxx = w - 1;
+	if (miny < 0)miny = 0;
+	if (maxy >= h)maxy = h - 1;
+	//for(int i = 0; i < h; i++) {
+	//	for(int j = 0; j < w; j++) {
+	for (int i = miny; i <= maxy; i++) {
+		if (i < 0 || i >= h)continue;
+		for (int j = minx; j < maxx; j++) {
+			if (j < 0 || j >= w)continue;
+			if (mSamplingMode == SamplingModeType::SAMPLING_3x3)
+			{
+				double vf = 0.0;
+				for (int di = -1; di <= 1; di++) {
+					for (int dj = -1; dj <= 1; dj++) {
+						double cj = j + (double)(dj * 2) / (6.0) - 0.5;
+						double ci = i + (double)(di * 2) / (6.0) - 0.5;
+						double cur
+							= std::abs(ccw(cj, ci, p0x, p0y, p1x, p1y))
+							+ std::abs(ccw(cj, ci, p1x, p1y, p2x, p2y))
+							+ std::abs(ccw(cj, ci, p2x, p2y, p0x, p0y));
+						if (cur - area < E) {
+							vf += sampling_table_3x3[di+1][dj+1];
+						}
+					}
+				}
+				if (vf < 0.0)vf = 0.0;
+				if (vf > 1.0)vf = 1.0;
+				if (vf > E) {
+					set_pixel(i, j, rr, gg, bb, aa * vf);
+				}
+			}
+			else
+			{
+				double cur
+					= std::abs(ccw(j, i, p0x, p0y, p1x, p1y))
+					+ std::abs(ccw(j, i, p1x, p1y, p2x, p2y))
+					+ std::abs(ccw(j, i, p2x, p2y, p0x, p0y));
+				if (cur - area < E) {
+					set_pixel(i, j, rr, gg, bb, aa);
+				}
 			}
 		}
 	}
 }
-void Image::draw_polygon(int n, const double *px, const double *py, double rr, double gg, double bb, double aa) {
-	if(n < 3) return;
+void Image::draw_polygon(int n, const double* px, const double* py, double rr, double gg, double bb, double aa) {
+	if (n < 3) return;
 	double signedArea = 0.0;
-	for(int k = 0; k < n; k++) {
-		signedArea += ccw(0, 0, px[k], py[k], px[(k + 1)%n], py[(k + 1)%n]);
+	for (int k = 0; k < n; k++) {
+		signedArea += ccw(0, 0, px[k], py[k], px[(k + 1) % n], py[(k + 1) % n]);
 	}
 	double area = std::abs(signedArea);
 	// NOTE: our xy-coordinate is not normal. clockwise will have positive area
@@ -422,55 +521,73 @@ void Image::draw_polygon(int n, const double *px, const double *py, double rr, d
 
 	std::vector<std::vector<double>> vf(h, std::vector<double>(w, 0.0));
 
-	for(int k = 0; k < n; k++) {
+	for (int k = 0; k < n; k++) {
 		double sx = px[k];
-		double ex = px[(k+1)%n];
+		double ex = px[(k + 1) % n];
 		double sy = py[k];
-		double ey = py[(k+1)%n];
+		double ey = py[(k + 1) % n];
 		double sign = is_cw ? -1.0 : 1.0;
-		if(sx > ex){
+		if (sx > ex) {
 			std::swap(sx, ex);
 			std::swap(sy, ey);
 			sign = -sign;
 		}
 		// add vf area between x:[sx ex) and y:[0 py]
-		for(int j = (int)sx - 1; j <= (int)ex + 1; j++) {
-			if(j < sx) continue;
-			if(j < 0) continue;
-			if(j >= ex) continue;
-			if(j >= w) continue;
-			double rate = (j - sx) / (ex - sx);
-			double py = sy + rate * (ey - sy);
-			for(int i = 0; i < h; i++){
-				if(i > py)break;
-				vf[i][j] += sign;
+		for (int j = (int)sx - 1; j <= (int)ex + 1; j++) {
+			if (j < sx) continue;
+			if (j < 0) continue;
+			if (j >= ex) continue;
+			if (j >= w) continue;
+			if (mSamplingMode == SamplingModeType::SAMPLING_3x3)
+			{
+				for (int dj = -1; dj <= 1; dj++) {
+					double rate = (j + (dj * 2.0) / 6.0 - sx) / (ex - sx);
+					double py = sy + rate * (ey - sy);
+					for (int i = 0; i < h; i++) {
+						if (i - 1 > py)break;
+						for (int di = -1; di <= 1; di++) {
+							if (i + (di * 2.0) / 6.0 > py)break;
+							vf[i][j] += sign * sampling_table_3x3[di + 1][dj + 1];
+						}
+					}
+				}
+			}
+			else {
+				double rate = (j - sx) / (ex - sx);
+				double py = sy + rate * (ey - sy);
+				for (int i = 0; i < h; i++) {
+					if (i > py)break;
+					vf[i][j] += sign;
+				}
 			}
 		}
 	}
 
-	for(int i = 0; i < h; i++) {
-		for(int j = 0; j < w; j++) {
-			if(vf[i][j] > 1.0 - E) {
-				set_pixel(i, j, rr, gg, bb, aa);
+	for (int i = 0; i < h; i++) {
+		for (int j = 0; j < w; j++) {
+			if (vf[i][j] > 1.0)vf[i][j] = 1.0;
+			if (vf[i][j] < 0.0)vf[i][j] = 0.0;
+			if (vf[i][j] > E) {
+				set_pixel(i, j, rr, gg, bb, aa * vf[i][j]);
 			}
 		}
 	}
 }
-void Image::draw_polygon(int n, const std::vector<double> &px, const std::vector<double> &py, double rr, double gg, double bb, double aa) {
-	if(n > std::min(px.size(), py.size())) n = std::min(px.size(), py.size());
+void Image::draw_polygon(int n, const std::vector<double>& px, const std::vector<double>& py, double rr, double gg, double bb, double aa) {
+	if (n > std::min(px.size(), py.size())) n = std::min(px.size(), py.size());
 	draw_polygon(n, px.data(), py.data(), rr, gg, bb, aa);
 }
-void Image::draw_polygon(int n, const double *pxy, double rr, double gg, double bb, double aa) {
+void Image::draw_polygon(int n, const double* pxy, double rr, double gg, double bb, double aa) {
 	std::vector<double> px(n);
 	std::vector<double> py(n);
-	for(int i=0; i<n; i++){
-		px[i] = pxy[i+i+0];
-		py[i] = pxy[i+i+1];
+	for (int i = 0; i < n; i++) {
+		px[i] = pxy[i + i + 0];
+		py[i] = pxy[i + i + 1];
 	}
 	draw_polygon(n, px, py, rr, gg, bb, aa);
 }
-void Image::draw_polygon(int n, const std::vector<double> &pxy, double rr, double gg, double bb, double aa) {
-	if(n > pxy.size() / 2) n = pxy.size() / 2;
+void Image::draw_polygon(int n, const std::vector<double>& pxy, double rr, double gg, double bb, double aa) {
+	if (n > pxy.size() / 2) n = pxy.size() / 2;
 	draw_polygon(n, pxy.data(), rr, gg, bb, aa);
 }
 void Image::draw_image(double cx, double cy, double px, double py, const Image& img) {
